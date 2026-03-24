@@ -1,7 +1,16 @@
 def getBranchType(String branchName) {
-    if (branchName?.contains('main')) {
+    if (!branchName) return 'unknown'
+    
+    // ✅ Pehle normalize karo
+    def clean = branchName
+                    .replaceAll('origin/', '')
+                    .replaceAll('refs/heads/', '')
+                    .trim()
+    
+    // ✅ Exact match — contains() nahi
+    if (clean == 'main' || clean == 'master') {
         return 'main'
-    } else if (branchName?.contains('feature')) {
+    } else if (clean.startsWith('feature/') || clean.startsWith('feature-') || clean == 'feature') {
         return 'feature'
     } else {
         return 'unknown'
