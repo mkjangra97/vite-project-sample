@@ -12,16 +12,12 @@ pipeline {
                 sh 'npm install'
             }
         }
-        stage('Debug') {
-           steps {
-            sh 'echo BRANCH_NAME=$BRANCH_NAME'
-            sh 'echo GIT_BRANCH=$GIT_BRANCH'
-    }
-}
         stage('Main Branch') {
-            expression {
-                env.GIT_BRANCH?.contains('main')
+            when {
+                expression {
+                    env.GIT_BRANCH?.contains('main')
                 }
+            }
             steps {
                 echo "Build the Code"
                 sh '''
@@ -31,9 +27,11 @@ pipeline {
             }
         }
         stage('Feature Branch') {
-            expression {
-                env.GIT_BRANCH?.contains('feature')
+            when {
+                expression {
+                    env.GIT_BRANCH?.contains('feature')
                 }
+            }
             steps {
                 echo "Build the Code"
                 sh '''
