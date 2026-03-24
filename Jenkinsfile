@@ -2,7 +2,6 @@
 
 pipeline {
     agent any
-
     stages {
         stage('Code Checkout') {
             steps {
@@ -13,63 +12,56 @@ pipeline {
         stage('Install Dependencies') {
             steps {
                 script {
-                    // ✅ Branch name properly normalize karo
-                    def rawBranch = env.BRANCH_NAME 
-                                 ?: env.GIT_BRANCH 
-                                 ?: ''
-
-                    // origin/ aur refs/heads/ dono strip karo
+                    def rawBranch = env.BRANCH_NAME ?: env.GIT_BRANCH ?: ''
                     def branch = rawBranch
                                     .replaceAll('origin/', '')
                                     .replaceAll('refs/heads/', '')
                                     .trim()
-        
-                    echo "🔍 Raw Branch Value : ${rawBranch}"
-                    echo "🔍 Normalized Branch: ${branch}"
 
-                    // ✅ contains() ki jagah exact match ya startsWith()
+                    echo "🔍 Raw   : ${rawBranch}"
+                    echo "🔍 Clean : ${branch}"
+
                     if (branch == 'main' || branch == 'master') {
                         echo "📦 Main branch — npm ci"
                         sh 'npm ci'
-                    } else if (branch.startsWith('feature/') || branch.startsWith('feature-')) {
+                    } else if (branch.startsWith('feature/') || branch.startsWith('feature-') || branch == 'feature') {
                         echo "📦 Feature branch — npm install"
                         sh 'npm install'
                     } else {
-                        echo "⚠️ Unknown branch: ${branch}"
+                        echo "⚠️ Unknown branch: ${branch} — npm install"
                         sh 'npm install'
                     }
                 }
-            }        
+            }
         }
 
         stage('Build & Deploy') {
             steps {
                 script {
-                    def branch = env.BRANCH_NAME ?: env.GIT_BRANCH?.replaceAll('origin/', '')
-                    echo "🔍 Deploying Branch: ${branch}"
+                    // ✅ Normalize YAHAN BHI karo — purana code nahi
+                    def rawBranch = env.BRANCH_NAME ?: env.GIT_BRANCH ?: ''
+                    def branch = rawBranch
+                                    .replaceAll('origin/', '')
+                                    .replaceAll('refs/heads/', '')
+                                    .trim()
 
-                    if (branch?.contains('main')) {
+                    // ✅ Library function use karo
+                    def branchType = getBranchType(branch)
+                    echo "🔍 Branch  : ${branch}"
+                    echo "🔍 Type    : ${branchType}"
+
+                    if (branchType == 'main') {
                         echo "🚀 Deploying to PRODUCTION"
-                        sh 'npm run build'
-                        sh """
-                            sshpass -p 'm' rsync -avz \
-                              -e 'ssh -o StrictHostKeyChecking=no' \
-                              -r ./dist/ manish@192.168.10.158:/var/www/main/
-                        """
+                        deployBuild(branch, '/var/www/main/')
                         echo "✅ Live: http://192.168.10.158:3000"
 
-                    } else if (branch?.contains('feature')) {
+                    } else if (branchType == 'feature') {
                         echo "🔧 Deploying to STAGING"
-                        sh 'npm run build'
-                        sh """
-                            sshpass -p 'm' rsync -avz \
-                              -e 'ssh -o StrictHostKeyChecking=no' \
-                              -r ./dist/ manish@192.168.10.158:/var/www/feature/
-                        """
+                        deployBuild(branch, '/var/www/feature/')
                         echo "✅ Live: http://192.168.10.158:3001"
 
                     } else {
-                        echo "⚠️ Unknown branch: ${branch} — Skipping deploy"
+                        echo "⚠️ Unknown branch: ${branch} — deploy skip"
                     }
                 }
             }
@@ -77,7 +69,19 @@ pipeline {
     }
 
     post {
-        success { echo "✅ Pipeline successful on branch: ${env.BRANCH_NAME ?: env.GIT_BRANCH}!" }
-        failure { echo "❌ Pipeline failed on branch: ${env.BRANCH_NAME ?: env.GIT_BRANCH}!" }
+        success {
+            script {
+                def b = (env.BRANCH_NAME ?: env.GIT_BRANCH ?: 'unknown')
+                            .replaceAll('origin/', '').replaceAll('refs/heads/', '').trim()
+                echo "✅ Pipeline successful on branch: ${b}"
+            }
+        }
+        failure {
+            script {
+                def b = (env.BRANCH_NAME ?: env.GIT_BRANCH ?: 'unknown')
+                            .replaceAll('origin/', '').replaceAll('refs/heads/', '').trim()
+                echo "❌ Pipeline failed on branch: ${b}"
+            }
+        }
     }
 }
