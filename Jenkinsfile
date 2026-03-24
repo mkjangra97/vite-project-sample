@@ -16,7 +16,7 @@ pipeline {
                     // ✅ If-Else for npm install
                     if (env.GIT_BRANCH?.contains('main')) {
                         echo "📦 Main branch — Production install (no devDependencies)"
-                        sh 'npm install --omit=dev'
+                        sh 'npm install'
 
                     } else if (env.GIT_BRANCH?.contains('feature')) {
                         echo "📦 Feature branch — Full install with devDependencies"
