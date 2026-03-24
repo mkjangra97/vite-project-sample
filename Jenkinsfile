@@ -13,24 +13,33 @@ pipeline {
         stage('Install Dependencies') {
             steps {
                 script {
-                    // ✅ BRANCH_NAME null ho to GIT_BRANCH se lo
-                    def branch = env.BRANCH_NAME ?: env.GIT_BRANCH?.replaceAll('origin/', '')
-                    echo "🔍 Detected Branch: ${branch}"
+                    // ✅ Branch name properly normalize karo
+                    def rawBranch = env.BRANCH_NAME 
+                                 ?: env.GIT_BRANCH 
+                                 ?: ''
 
-                    if (branch?.contains('main')) {
+                    // origin/ aur refs/heads/ dono strip karo
+                    def branch = rawBranch
+                                    .replaceAll('origin/', '')
+                                    .replaceAll('refs/heads/', '')
+                                    .trim()
+        
+                    echo "🔍 Raw Branch Value : ${rawBranch}"
+                    echo "🔍 Normalized Branch: ${branch}"
+
+                    // ✅ contains() ki jagah exact match ya startsWith()
+                    if (branch == 'main' || branch == 'master') {
                         echo "📦 Main branch — npm ci"
                         sh 'npm ci'
-
-                    } else if (branch?.contains('feature')) {
+                    } else if (branch.startsWith('feature/') || branch.startsWith('feature-')) {
                         echo "📦 Feature branch — npm install"
                         sh 'npm install'
-
                     } else {
                         echo "⚠️ Unknown branch: ${branch}"
                         sh 'npm install'
                     }
                 }
-            }
+            }        
         }
 
         stage('Build & Deploy') {
