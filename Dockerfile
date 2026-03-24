@@ -17,19 +17,18 @@ COPY . .
 RUN npm run build
 
 # ─────────────────────────────────────────────
-# Stage 2: Serve with Nginx
+# Stage 2: Serve with Node (no nginx)
 # ─────────────────────────────────────────────
-FROM nginx:alpine AS production
+FROM node:20-alpine AS production
 
-# Remove default nginx content
-RUN rm -rf /usr/share/nginx/html/*
+# Install 'serve' to serve static files
+RUN npm install -g serve
+
+WORKDIR /app
 
 # Copy built assets from builder stage
-COPY --from=builder /app/dist /usr/share/nginx/html
+COPY --from=builder /app/dist ./dist
 
-# Copy custom nginx config
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+EXPOSE 4173
 
-EXPOSE 80
-
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["serve", "-s", "dist", "-l", "4173"]
