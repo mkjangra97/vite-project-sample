@@ -14,11 +14,11 @@ pipeline {
             steps {
                 script {
                     // ✅ If-Else for npm install
-                    if (env.GIT_BRANCH?.contains('main')) {
+                    if (env.BRANCH_NAME?.contains('main')) {
                         echo "📦 Main branch — Production install (no devDependencies)"
                         sh 'npm install'
 
-                    } else if (env.GIT_BRANCH?.contains('feature')) {
+                    } else if (env.BRANCH_NAME?.contains('feature')) {
                         echo "📦 Feature branch — Full install with devDependencies"
                         sh 'npm install'
 
@@ -33,7 +33,7 @@ pipeline {
         stage('Build & Deploy') {
             steps {
                 script {
-                    if (env.GIT_BRANCH?.contains('main')) {
+                    if (env.BRANCH_NAME?.contains('main')) {
                         echo "🚀 Main branch — Deploying to PRODUCTION"
                         sh 'npm run build'
                         sh """
@@ -42,7 +42,7 @@ pipeline {
                               -r ./dist/ manish@192.168.10.158:/var/www/main/
                         """
 
-                    } else if (env.GIT_BRANCH?.contains('feature')) {
+                    } else if (env.BRANCH_NAME?.contains('feature')) {
                         echo "🔧 Feature branch — Deploying to STAGING"
                         sh 'npm run build'
                         sh """
@@ -52,7 +52,7 @@ pipeline {
                         """
 
                     } else {
-                        echo "⚠️ Unknown branch: ${env.GIT_BRANCH} — Skipping deploy"
+                        echo "⚠️ Unknown branch: ${env.BRANCH_NAME} — Skipping deploy"
                     }
                 }
             }
