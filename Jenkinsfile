@@ -26,7 +26,7 @@ pipeline {
                 echo "Build the Code"
                 sh '''
                 npm run build
-                sshpass -p 'm' -avz -e 'ssh -o StrictHostKeyChecking=no' -r ./dist/ manish@192.168.10.158:/var/www/main/
+                sshpass -p 'm' rsync -avz -e 'ssh -o StrictHostKeyChecking=no' -r ./dist/ manish@192.168.10.158:/var/www/main/
                 '''
             }
         }
@@ -38,7 +38,7 @@ pipeline {
                 echo "Build the Code"
                 sh '''
                 npm run build
-                sshpass -p 'm' -avz -e 'ssh -o StrictHostKeyChecking=no' -r ./dist/ manish@192.168.10.158:/var/www/feature/
+                sshpass -p 'm' rsync -avz -e 'ssh -o StrictHostKeyChecking=no' -r ./dist/ manish@192.168.10.158:/var/www/feature/
                 '''
             }
         }
