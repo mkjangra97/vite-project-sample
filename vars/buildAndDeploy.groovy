@@ -1,5 +1,6 @@
 def call(String branch, String deployPath) {
-    echo "Building for branch: ${branch}"
+    // branch already normalized honi chahiye
+    echo "🚀 Building for branch: ${branch}"
     sh 'npm run build'
     sh """
         sshpass -p 'm' rsync -avz \
