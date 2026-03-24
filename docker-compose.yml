@@ -8,5 +8,5 @@ services:
     image: vite-react-app:latest
     container_name: vite-react-container
     ports:
-      - "8080:80"
+      - "4174:4174"
     restart: unless-stopped
