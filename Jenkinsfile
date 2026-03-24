@@ -19,9 +19,9 @@ pipeline {
     }
 }
         stage('Main Branch') {
-            when {
-                branch 'main'
-            }
+            expression {
+                env.GIT_BRANCH?.contains('main')
+                }
             steps {
                 echo "Build the Code"
                 sh '''
@@ -31,9 +31,9 @@ pipeline {
             }
         }
         stage('Feature Branch') {
-            when {
-                branch 'feature'
-            }
+            expression {
+                env.GIT_BRANCH?.contains('feature')
+                }
             steps {
                 echo "Build the Code"
                 sh '''
